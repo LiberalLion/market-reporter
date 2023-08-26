@@ -42,7 +42,7 @@ def find_operation(ref_token: str,
 
     optimal_operation_id = numpy.argmin(results)
     optimal_operation_name, _ = list(FORMULAE.items())[optimal_operation_id]
-    return '<yen val="{}"/>'.format(optimal_operation_name)
+    return f'<yen val="{optimal_operation_name}"/>'
 
 
 def perform_operation(tag: int,
@@ -57,7 +57,7 @@ def perform_operation(tag: int,
     operation_name = fromstring(tag).attrib['val']
     formula = FORMULAE.get(operation_name, 'z')
     diff = abs(latest - prev_trading_day_close)
-    return str(formula(diff, latest)) + '円'
+    return f'{str(formula(diff, latest))}円'
 
 
 def replace_tags_with_vals(tokens: List[str],

@@ -19,9 +19,6 @@ def stringify(query: Any) -> str:
 
     if type(query) == Query:
         query = query.statement
-    else:
-        pass
-
     sql = query.compile(compile_kwargs={"literal_binds": True},
                         dialect=postgresql.dialect())
 

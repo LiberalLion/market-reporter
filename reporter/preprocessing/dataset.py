@@ -66,7 +66,7 @@ def prepare_resources(config: Config, db_session: Session, logger: Logger) -> Di
     remote_rics = list_rics_in_s3(bucket, config.remote_dir_prices)
     remote_missing_rics = [ric for ric in config.rics if ric not in remote_rics]
     remote_dir_prices = Path(config.remote_dir_prices)
-    if len(remote_missing_rics) > 0:
+    if remote_missing_rics:
         download_prices_from_reuters(config.reuters_username,
                                      config.reuters_password,
                                      dir_prices,
@@ -90,13 +90,11 @@ def prepare_resources(config: Config, db_session: Session, logger: Logger) -> Di
 
 def create_dataset(config: Config, device: torch.device) -> Tuple[Vocab, Iterator, Iterator, Iterator]:
 
-    fields = dict()
     raw_field = RawField()
     # torchtext 0.3.1
     # AttributeError: 'RawField' object has no attribute 'is_target'
     raw_field.is_target = False
-    fields[SeqType.ArticleID.value] = (SeqType.ArticleID.value, raw_field)
-
+    fields = {SeqType.ArticleID.value: (SeqType.ArticleID.value, raw_field)}
     time_field = Field(use_vocab=False, batch_first=True, sequential=False)
     fields['jst_hour'] = (SeqType.Time.value, time_field)
 

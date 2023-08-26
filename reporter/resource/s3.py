@@ -27,16 +27,16 @@ def download_nikkei_headlines_from_s3(bucket: ServiceResource,
         temp_dest = os.path.join(cp932zip_dirname, basename)
 
         if os.path.isfile(temp_dest):
-            logger.debug('skip downloading {}'.format(basename))
+            logger.debug(f'skip downloading {basename}')
         else:
-            logger.debug('start downloading {}'.format(basename))
+            logger.debug(f'start downloading {basename}')
             try:
                 bucket.download_file(Key=remote_filename, Filename=temp_dest)
             except ClientError as e:
                 code = e.response.get('Error', {}).get('Code', '')
                 if str(code) == str(HTTPStatus.NOT_FOUND.value):
-                    logger.info('{} is not found'.format(remote_filename))
-            logger.debug('end downloading {}'.format(basename))
+                    logger.info(f'{remote_filename} is not found')
+            logger.debug(f'end downloading {basename}')
 
         infl_filename = re.sub(r'\.zip$', '.csv',
                                basename,
@@ -45,16 +45,15 @@ def download_nikkei_headlines_from_s3(bucket: ServiceResource,
         if match is None:
             raise ValueError
         year = int(match[1])
-        utf8_filename = os.path.join(utf8csv_dirname,
-                                     'nikkei_headlines_{}.csv'.format(year))
+        utf8_filename = os.path.join(utf8csv_dirname, f'nikkei_headlines_{year}.csv')
 
         if os.path.isfile(utf8_filename):
-            logger.debug('skip converting {}'.format(utf8_filename))
+            logger.debug(f'skip converting {utf8_filename}')
             continue
 
         with zipfile.ZipFile(temp_dest, mode='r') as zf:
 
-            logger.debug('start converting {}'.format(utf8_filename))
+            logger.debug(f'start converting {utf8_filename}')
 
             with zf.open(infl_filename, mode='r') as cp932_file:
                 text = cp932_file.read()
@@ -62,7 +61,7 @@ def download_nikkei_headlines_from_s3(bucket: ServiceResource,
             with open(utf8_filename, mode='wb') as utf8_file:
                 utf8_file.write(text.decode('cp932').encode('utf-8'))
 
-            logger.debug('end converting {}'.format(utf8_filename))
+            logger.debug(f'end converting {utf8_filename}')
 
 
 def download_prices_from_s3(bucket: ServiceResource,
@@ -82,16 +81,16 @@ def download_prices_from_s3(bucket: ServiceResource,
         dest = dest_parent / Path(basename)
 
         if dest.is_file():
-            logger.debug('skip downloading {}'.format(basename))
+            logger.debug(f'skip downloading {basename}')
         else:
-            logger.debug('start downloading {}'.format(basename))
+            logger.debug(f'start downloading {basename}')
             try:
                 bucket.download_file(Key=str(remote_filename), Filename=str(dest))
             except ClientError as e:
                 code = e.response.get('Error', {}).get('Code', '')
                 if str(code) == str(HTTPStatus.NOT_FOUND.value):
-                    logger.critical('{} is not found'.format(str(remote_filename)))
-            logger.debug('end downloading {}'.format(basename))
+                    logger.critical(f'{str(remote_filename)} is not found')
+            logger.debug(f'end downloading {basename}')
 
 
 def list_rics_in_s3(bucket: ServiceResource, dirname: str) -> List[str]:
@@ -113,7 +112,7 @@ def upload_prices_to_s3(bucket: ServiceResource,
 
         objs = list(bucket.objects.filter(Prefix=key).all())
 
-        if len(objs) > 0 and objs[0].key == key:
+        if objs and objs[0].key == key:
             continue
 
         with local_filename.open(mode='rb') as body:
@@ -128,13 +127,13 @@ def download_reuters_articles_from_s3(bucket: ServiceResource,
 
     dest_dirname.mkdir(parents=True, exist_ok=True)
     for remote_dirname in remote_dirnames:
-        logger.info('start downloading files in {}'.format(remote_dirname))
+        logger.info(f'start downloading files in {remote_dirname}')
         summaries = bucket.objects.filter(Prefix=str(remote_dirname))
         for summary in summaries:
             dest = Path(dest_dirname).joinpath(summary.key.split('/')[-1])
             if not summary.key.endswith('/') and not dest.is_file():
                 bucket.download_file(Key=summary.key, Filename=str(dest))
-        logger.info('end downloading files in {}'.format(remote_dirname))
+        logger.info(f'end downloading files in {remote_dirname}')
 
 
 def download_nikkei_bodies_from_s3(bucket: ServiceResource,
@@ -144,8 +143,8 @@ def download_nikkei_bodies_from_s3(bucket: ServiceResource,
 
     dest_dirname.mkdir(parents=True, exist_ok=True)
     for remote_filename in remote_filenames:
-        logger.info('start downloading {}'.format(remote_filename))
+        logger.info(f'start downloading {remote_filename}')
         dest = dest_dirname.joinpath(remote_filename.name)
         if not dest.is_file():
             bucket.download_file(Key=str(remote_filename), Filename=str(dest))
-        logger.info('start downloading {}'.format(remote_filename))
+        logger.info(f'start downloading {remote_filename}')

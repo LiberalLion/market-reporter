@@ -82,7 +82,7 @@ class Reuters:
     start = '2010-01-01T00:00:00.000Z'
     end = '2017-12-14T00:00:00.000Z'
     rest_api_root_uri = 'https://hosted.datascopeapi.reuters.com/RestApi/v1/'
-    extraction_raw_uri = rest_api_root_uri + 'Extractions/ExtractRaw'
+    extraction_raw_uri = f'{rest_api_root_uri}Extractions/ExtractRaw'
     raw_extraction_results_uri = \
         rest_api_root_uri + "Extractions/RawExtractionResults('{}')/$value"
-    auth_token_uri = rest_api_root_uri + 'Authentication/RequestToken'
+    auth_token_uri = f'{rest_api_root_uri}Authentication/RequestToken'

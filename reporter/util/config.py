@@ -83,23 +83,27 @@ class Config:
                             in config.get('webapp', {}).get('result', [])])
 
     def write_log(self, logger: Logger):
-        s = '\n'.join(['load configuration from: {}'.format(self.filename),
-                       'n_epochs: {}'.format(self.n_epochs),
-                       'batch_size: {}'.format(self.batch_size),
-                       'learning_rate: {}'.format(self.learning_rate),
-                       'token_min_freq: {}'.format(self.token_min_freq),
-                       'rics: {}'.format(self.rics),
-                       'base_ric: {}'.format(self.base_ric),
-                       'use_standardization: {}'.format(self.use_standardization),
-                       'use_init_token_tag: {}'.format(self.use_init_token_tag),
-                       'patience: {}'.format(self.patience),
-                       'enc_hidden_size: {}'.format(self.enc_hidden_size),
-                       'enc_n_layers: {}'.format(self.enc_n_layers),
-                       'base_ric_hidden_size: {}'.format(self.base_ric_hidden_size),
-                       'ric_hidden_size: {}'.format(self.ric_hidden_size),
-                       'use_dropout: {}'.format(self.use_dropout),
-                       'word_embed_size: {}'.format(self.word_embed_size),
-                       'time_embed_size: {}'.format(self.time_embed_size)])
+        s = '\n'.join(
+            [
+                f'load configuration from: {self.filename}',
+                f'n_epochs: {self.n_epochs}',
+                f'batch_size: {self.batch_size}',
+                f'learning_rate: {self.learning_rate}',
+                f'token_min_freq: {self.token_min_freq}',
+                f'rics: {self.rics}',
+                f'base_ric: {self.base_ric}',
+                f'use_standardization: {self.use_standardization}',
+                f'use_init_token_tag: {self.use_init_token_tag}',
+                f'patience: {self.patience}',
+                f'enc_hidden_size: {self.enc_hidden_size}',
+                f'enc_n_layers: {self.enc_n_layers}',
+                f'base_ric_hidden_size: {self.base_ric_hidden_size}',
+                f'ric_hidden_size: {self.ric_hidden_size}',
+                f'use_dropout: {self.use_dropout}',
+                f'word_embed_size: {self.word_embed_size}',
+                f'time_embed_size: {self.time_embed_size}',
+            ]
+        )
         logger.info(s)
 
     @property

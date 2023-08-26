@@ -76,8 +76,8 @@ def create_ric_tables(session: Session,
             .all()
         prev_vals = [v for (_, v) in results][1:] + [Decimal(0)]
         formatted_rows = []
-        for i, (t, v, diff) in enumerate([(t, v, v - prev_v) for ((t, v), prev_v)
-                                          in zip(results, prev_vals)]):
+        for i, (t, v, diff) in enumerate((t, v, v - prev_v) for ((t, v), prev_v)
+                                                  in zip(results, prev_vals)):
 
             if i == len(results) - 1:
                 indicator = '-'

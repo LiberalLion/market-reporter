@@ -2,7 +2,7 @@ from reporter.util.constant import SeqType
 
 
 def stringify_ric_seqtype(ric: str, seqtype: SeqType) -> str:
-    return ric + '___' + seqtype.value
+    return f'{ric}___{seqtype.value}'
 
 
 def base_ric_first(num_rics: list,

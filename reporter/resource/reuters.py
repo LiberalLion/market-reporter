@@ -42,7 +42,7 @@ def ric2filename(dirname: Path, ric: str, extension: str) -> Path:
 
     basename = re.sub(r'([a-z])', r'#\1', ric).lower().replace('.', '_')
     sanitized_basename = re.sub('[^a-z0-9_#=]', '', basename)
-    return dirname / Path(sanitized_basename + '.' + extension)
+    return dirname / Path(f'{sanitized_basename}.{extension}')
 
 
 def download_prices_from_reuters(username: str,
@@ -67,7 +67,7 @@ def download_prices_from_reuters(username: str,
             } for ric in rics]
     todo = [item for item in todo if not item['file'].is_file()]
     for item in todo:
-        logging.info('start downloading {} from Reuters'.format(item['ric']))
+        logging.info(f"start downloading {item['ric']} from Reuters")
         item['json'] = make_payload(item['ric'], start=start, end=end)
 
     while todo:
@@ -89,17 +89,17 @@ def download_prices_from_reuters(username: str,
                 with item['file'].open(mode='wb') as f:
                     f.write(r.raw.read())
 
-                logging.info('end downloading {} from Reuters'.format(item['ric']))
+                logging.info(f"end downloading {item['ric']} from Reuters")
 
             elif r.status_code == HTTPStatus.ACCEPTED.value:
                 item['uri'] = r.headers['Location']
                 item['json'] = None
                 future.append(item)
 
-                logging.debug('waiting for {} from Reuters'.format(item['ric']))
+                logging.debug(f"waiting for {item['ric']} from Reuters")
 
             else:
-                logging.error('error downloading {} from Reuters: {}'.format(item['ric'], r.status_code))
+                logging.error(f"error downloading {item['ric']} from Reuters: {r.status_code}")
 
         time.sleep(10)
         todo = future
@@ -121,25 +121,21 @@ def get_auth_token(username: str, password: str) -> Union[None, str]:
     response = requests.post(uri, json=data, headers=header)
 
     if response.status_code == HTTPStatus.OK.value:
-        auth_token = response.json()['value']
-        return auth_token
-    else:
-        logging.error('error authenticating with Reuters: {}'.format(response.status_code))
-        return None
+        return response.json()['value']
+    logging.error(f'error authenticating with Reuters: {response.status_code}')
+    return None
 
 
 def make_extract_header(auth_token: str) -> Dict[str, str]:
-    return \
-        {
-            'Prefer': 'respond-async',
-            'Content-Type': 'application/json',
-            'Accept-Charset': 'UTF-8',
-            'Authorization': 'Token ' + auth_token
-        }
+    return {
+        'Prefer': 'respond-async',
+        'Content-Type': 'application/json',
+        'Accept-Charset': 'UTF-8',
+        'Authorization': f'Token {auth_token}',
+    }
 
 
-def make_payload(ric: str, start: str = None, end: str = None) \
-        -> Dict[str, Dict[str, Union[str, Dict[str, Union[str, bool]]]]]:
+def make_payload(ric: str, start: str = None, end: str = None) -> Dict[str, Dict[str, Union[str, Dict[str, Union[str, bool]]]]]:
 
     content_field_names = \
         [
@@ -200,18 +196,16 @@ def make_payload(ric: str, start: str = None, end: str = None) \
             'DisplaySourceRIC': True
         }
 
-    payload = \
-        {
-            'ExtractionRequest': {
-                '@odata.type': tick_history,
-                'ContentFieldNames': content_field_names,
-                'IdentifierList': {
-                    '@odata.type': instrument_identifier_list,
-                    'InstrumentIdentifiers': instruments,
-                    'ValidationOptions': validation_options,
-                    'UseUserPreferencesForValidationOptions': False
-                },
-                'Condition': condition
-            }
+    return {
+        'ExtractionRequest': {
+            '@odata.type': tick_history,
+            'ContentFieldNames': content_field_names,
+            'IdentifierList': {
+                '@odata.type': instrument_identifier_list,
+                'InstrumentIdentifiers': instruments,
+                'ValidationOptions': validation_options,
+                'UseUserPreferencesForValidationOptions': False,
+            },
+            'Condition': condition,
         }
-    return payload
+    }

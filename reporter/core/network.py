@@ -133,8 +133,8 @@ class Encoder(nn.Module):
                               SeqType.NormMovRefShort,
                               SeqType.StdLong,
                               SeqType.StdShort] \
-            if config.use_standardization \
-            else [SeqType.NormMovRefLong,
+                if config.use_standardization \
+                else [SeqType.NormMovRefLong,
                   SeqType.NormMovRefShort]
         self.used_rics = config.rics
         self.use_extra_rics = len(self.used_rics) > 1
@@ -149,15 +149,15 @@ class Encoder(nn.Module):
         self.device = device
 
         self.use_dropout = config.use_dropout
-        self.ric_seqtype_to_mlp = dict()
+        self.ric_seqtype_to_mlp = {}
 
         for (ric, seqtype) in itertools.product(self.used_rics, self.used_seqtypes):
             input_size = N_LONG_TERM \
-                if seqtype.value.endswith('long') \
-                else N_SHORT_TERM
+                    if seqtype.value.endswith('long') \
+                    else N_SHORT_TERM
             output_size = self.base_ric_hidden_size \
-                if ric == self.base_ric \
-                else self.ric_hidden_size
+                    if ric == self.base_ric \
+                    else self.ric_hidden_size
             mlp = MLP(input_size,
                       self.hidden_size,
                       output_size,
@@ -168,10 +168,10 @@ class Encoder(nn.Module):
                    for (_, seqtype) in itertools.product(self.used_rics, self.used_seqtypes)]
         total_length = sum(lengths)
         self.cat_hidden_size = \
-            total_length + self.prior_encoding * len(self.used_seqtypes) * self.base_ric_hidden_size \
-            if len(self.used_rics) == 1 \
-            else self.prior_encoding * len(self.used_seqtypes) * self.base_ric_hidden_size + \
-            (len(lengths) - self.prior_encoding * len(self.used_seqtypes)) * self.ric_hidden_size
+                total_length + self.prior_encoding * len(self.used_seqtypes) * self.base_ric_hidden_size \
+                if len(self.used_rics) == 1 \
+                else self.prior_encoding * len(self.used_seqtypes) * self.base_ric_hidden_size + \
+                (len(lengths) - self.prior_encoding * len(self.used_seqtypes)) * self.ric_hidden_size
 
         self.dense = nn.Linear(self.cat_hidden_size, self.hidden_size)
 
@@ -195,8 +195,8 @@ class Encoder(nn.Module):
                 # Switch the source to one which is not normalized
                 # to make our implementation compatible with Murakami 2017
                 L_seqtype = SeqType.MovRefLong \
-                    if seqtype == SeqType.NormMovRefLong \
-                    else SeqType.MovRefShort
+                        if seqtype == SeqType.NormMovRefLong \
+                        else SeqType.MovRefShort
                 L[(ric, seqtype)] = getattr(batch, stringify_ric_seqtype(ric, L_seqtype)).to(self.device)
                 H[(ric, seqtype)] = self.ric_seqtype_to_mlp[(ric, seqtype)](vals)
             else:
@@ -207,15 +207,15 @@ class Encoder(nn.Module):
             attn_vector.extend([H[(ric, seq)] for seq in self.used_seqtypes])
 
         enc_hidden = torch.cat(list(H.values()), 1) \
-            if self.use_extra_rics \
-            else torch.cat(list(L.values()) + list(H.values()), 1)  # Murakami model
+                if self.use_extra_rics \
+                else torch.cat(list(L.values()) + list(H.values()), 1)  # Murakami model
 
         enc_hidden = self.dense(enc_hidden)
 
         if self.use_dropout:
             enc_hidden = self.drop(enc_hidden)
 
-        if len(attn_vector) > 0:
+        if attn_vector:
             attn_vector = torch.cat(attn_vector, 1)
             attn_vector = attn_vector.view(mini_batch_size, len(self.extra_rics), -1)
 
@@ -357,14 +357,12 @@ class EncoderDecoder(nn.Module):
         decoder_input = tokens[0]
         time_embedding = time_embedding.squeeze()
 
-        pred = []
         attn_weight = []
-        pred.append(decoder_input.cpu().numpy())
-
+        pred = [decoder_input.cpu().numpy()]
         if phase == Phase.Train:
             for i in range(1, n_tokens):
                 decoder_output, weight = \
-                    self.decoder(decoder_input, time_embedding, attn_vector, mini_batch_size)
+                        self.decoder(decoder_input, time_embedding, attn_vector, mini_batch_size)
                 loss += criterion(decoder_output, tokens[i])
 
                 topv, topi = decoder_output.data.topk(1)
@@ -378,7 +376,7 @@ class EncoderDecoder(nn.Module):
         else:
             for i in range(1, GENERATION_LIMIT):
                 decoder_output, weight = \
-                    self.decoder(decoder_input, time_embedding, attn_vector, mini_batch_size)
+                        self.decoder(decoder_input, time_embedding, attn_vector, mini_batch_size)
                 if i < n_tokens:
                     loss += criterion(decoder_output, tokens[i])
 

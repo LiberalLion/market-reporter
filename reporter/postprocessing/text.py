@@ -14,12 +14,11 @@ def number2kansuuzi(tokens: List[str]) -> List[str]:
     def convert(token: str) -> str:
         if re.match(r'\d{5,8}円', token) is None:
             return token
-        else:
-            major_part = token[:-5]
-            minor_part = token[-5:-1]
-            return '{}万円'.format(major_part) \
-                if int(minor_part) == 0 \
-                else '{}万{}円'.format(major_part, minor_part)
+        major_part = token[:-5]
+        minor_part = token[-5:-1]
+        return '{}万円'.format(major_part) \
+            if int(minor_part) == 0 \
+            else '{}万{}円'.format(major_part, minor_part)
 
     return [convert(token) for token in tokens]
 
@@ -31,4 +30,8 @@ def remove_bos(sentence: List[str]) -> List[str]:
     >>> remove_bos([])
     []
     """
-    return sentence[1:] if len(sentence) > 0 and sentence[0] == SpecialToken.BOS.value else sentence
+    return (
+        sentence[1:]
+        if sentence and sentence[0] == SpecialToken.BOS.value
+        else sentence
+    )

@@ -70,7 +70,7 @@ def populate_for_human_evaluation(session: Session,
         .group_by(GenerationResult.article_id) \
         .all()
 
-    orderings = list(permutations([m for m in method_names]))
+    orderings = list(permutations(list(method_names)))
 
     for group in groups:
 

@@ -53,8 +53,7 @@ def fetch_rics(session: Session) -> List[str]:
 
 
 def fetch_date_range(session: Session) -> Tuple[datetime, datetime]:
-    results = session.query(func.min(Price.t), func.max(Price.t)).first()
-    return results
+    return session.query(func.min(Price.t), func.max(Price.t)).first()
 
 
 def fetch_prices_of_a_day(session: Session,

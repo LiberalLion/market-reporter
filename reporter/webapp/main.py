@@ -110,9 +110,12 @@ def order_method_names_for_debug(method_names: List[str]) -> List[str]:
     if 'Base' in method_names:
         result.append((1, 'Base'))
 
-    for method_name in [m for m in method_names if m not in ['Gold', 'Base']]:
-        result.append((2, method_name))
-
+    result.extend(
+        (2, method_name)
+        for method_name in [
+            m for m in method_names if m not in ['Gold', 'Base']
+        ]
+    )
     return [m for (_, m) in sorted(result)]
 
 
@@ -126,9 +129,9 @@ def list_targets_of_human_evaluation(is_debug: bool) -> flask.Response:
     page = int(args.get('page', default=1))
     conditions = []
     for i in range(5):
-        field = args.get('field' + str(i))
-        relation = args.get('rel' + str(i))
-        val = args.get('val' + str(i))
+        field = args.get(f'field{str(i)}')
+        relation = args.get(f'rel{str(i)}')
+        val = args.get(f'val{str(i)}')
         if field is not None and relation is not None and val is not None:
             constraint = construct_constraint_query(field.strip(), relation.strip(), val.strip())
             conditions.append(constraint)
@@ -249,7 +252,7 @@ def article_evaluation(article_id: str,
             .filter(GenerationResult.article_id == article_id,
                     GenerationResult.method_name == 'Base') \
             .one()
-        r.correctness = form.get('correctness-{}'.format(nth['Base']))
+        r.correctness = form.get(f"correctness-{nth['Base']}")
 
         g = db \
             .session \
@@ -257,7 +260,7 @@ def article_evaluation(article_id: str,
             .filter(GenerationResult.article_id == article_id,
                     GenerationResult.method_name == 'Gold') \
             .one()
-        g.correctness = form.get('correctness-{}'.format(nth['Gold']))
+        g.correctness = form.get(f"correctness-{nth['Gold']}")
 
         e = db \
             .session \
@@ -265,7 +268,7 @@ def article_evaluation(article_id: str,
             .filter(GenerationResult.article_id == article_id,
                     GenerationResult.method_name == 'Ours') \
             .one()
-        e.correctness = form.get('correctness-{}'.format(nth['Ours']))
+        e.correctness = form.get(f"correctness-{nth['Ours']}")
 
         db.session.commit()
 
@@ -299,7 +302,7 @@ def article_evaluation(article_id: str,
         method_names = ['Gold'] if target.ordering is None else target.ordering
         if is_debug:
             method_names = order_method_names_for_debug(method_names)
-        d = dict()
+        d = {}
         m = []
         for method_name in method_names:
             res = db \
@@ -323,15 +326,17 @@ def article_evaluation(article_id: str,
         informativeness = '' if target.informativeness is None else target.informativeness
         targets = [(i + 1, d[method_name]) for (i, method_name) in enumerate(m)]
 
-        return flask.render_template('human_evaluation.pug',
-                                     title='debug' if is_debug else 'human-evaluation',
-                                     article_id=headline.article_id,
-                                     timestamp=headline.s_jst + ' JST',
-                                     targets=targets,
-                                     fluency=fluency,
-                                     informativeness=informativeness,
-                                     note=note,
-                                     ric_table_groups=ric_table_groups)
+        return flask.render_template(
+            'human_evaluation.pug',
+            title='debug' if is_debug else 'human-evaluation',
+            article_id=headline.article_id,
+            timestamp=f'{headline.s_jst} JST',
+            targets=targets,
+            fluency=fluency,
+            informativeness=informativeness,
+            note=note,
+            ric_table_groups=ric_table_groups,
+        )
 
 
 @app.route('/data/<string:article_id>')
@@ -356,19 +361,21 @@ def data(article_id: str) -> flask.Response:
         start_prev = datetime(end_prev.year, end_prev.month, end_prev.day, 0, 0, tzinfo=UTC)
         xs_prev, ys_prev = fetch_points(db.session, ric, start_prev, end_prev)
 
-        data.append({
-            'ric': ric,
-            'chart': {
-                'xs': xs,
-                'ys': ys,
-                'title': '{} {}'.format(ric, end.strftime('%Y-%m-%d'))
-            },
-            'chart-prev': {
-                'xs': xs_prev,
-                'ys': ys_prev,
-                'title': '{} {}'.format(ric, end_prev.strftime('%Y-%m-%d'))
+        data.append(
+            {
+                'ric': ric,
+                'chart': {
+                    'xs': xs,
+                    'ys': ys,
+                    'title': f"{ric} {end.strftime('%Y-%m-%d')}",
+                },
+                'chart-prev': {
+                    'xs': xs_prev,
+                    'ys': ys_prev,
+                    'title': f"{ric} {end_prev.strftime('%Y-%m-%d')}",
+                },
             }
-        })
+        )
 
     return app.response_class(response=flask.json.dumps(data),
                               status=http.HTTPStatus.OK,

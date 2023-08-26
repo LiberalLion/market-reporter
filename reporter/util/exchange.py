@@ -49,12 +49,9 @@ class ClosingTime:
 
         def _f_dst(_utc_offset: int) -> time:
 
-            if int(_utc_offset) == int(utc_offset):
+            if _utc_offset == utc_offset:
                 return time(close_t.hour, close_t.minute, tzinfo=UTC)
             else:
                 return time(close_t.hour - 1, close_t.minute, tzinfo=UTC)
 
-        if has_dst:
-            return _f_dst
-        else:
-            return _f
+        return _f_dst if has_dst else _f

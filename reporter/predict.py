@@ -119,8 +119,8 @@ class Predictor:
         pg_session = SessionMaker()
 
         rics = self.config.rics \
-            if target_ric in self.config.rics \
-            else [target_ric] + self.config.rics
+                if target_ric in self.config.rics \
+                else [target_ric] + self.config.rics
 
         alignments = load_alignments_from_db(pg_session, rics, t, self.seqtypes)
 
@@ -144,7 +144,7 @@ class Predictor:
         times = batch.time
         tokens = batch.token
         raw_short_field = stringify_ric_seqtype(Code.N225.value, SeqType.RawShort)
-        latest_vals = [x for x in getattr(batch, raw_short_field).data[:, 0]]
+        latest_vals = list(getattr(batch, raw_short_field).data[:, 0])
         raw_long_field = stringify_ric_seqtype(Code.N225.value, SeqType.RawLong)
         latest_closing_vals = get_latest_closing_vals(batch, raw_long_field, times)
 
@@ -180,9 +180,7 @@ def create_dataset(config: Config,
                    rics: List[str],
                    seqtypes: List[SeqType]) -> Iterator:
 
-    fields = dict()
-    fields[SeqType.ArticleID.value] = (SeqType.ArticleID.value, RawField())
-
+    fields = {SeqType.ArticleID.value: (SeqType.ArticleID.value, RawField())}
     time_field = Field(use_vocab=False, batch_first=True, sequential=False)
     fields['jst_hour'] = (SeqType.Time.value, time_field)
 

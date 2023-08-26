@@ -66,7 +66,7 @@ def main() -> None:
 
     device = torch.device(args.device)
 
-    now = datetime.today().strftime('reporter-%Y-%m-%d-%H-%M-%S')
+    now = datetime.now().strftime('reporter-%Y-%m-%d-%H-%M-%S')
     dest_dir = config.dir_output / Path(now) \
         if args.output_subdir is None \
         else config.dir_output / Path(args.output_subdir)
@@ -76,13 +76,14 @@ def main() -> None:
     logger = create_logger(dest_log, is_debug=args.is_debug)
     config.write_log(logger)
 
-    message = 'start main (is_debug: {}, device: {})'.format(args.is_debug, args.device)
+    message = f'start main (is_debug: {args.is_debug}, device: {args.device})'
     logger.info(message)
 
     # === Alignment ===
-    has_all_alignments = \
-        all([(config.dir_output / Path('alignment-{}.json'.format(phase.value))).exists()
-             for phase in list(Phase)])
+    has_all_alignments = all(
+        (config.dir_output / Path(f'alignment-{phase.value}.json')).exists()
+        for phase in list(Phase)
+    )
 
     if not has_all_alignments:
 
@@ -94,7 +95,7 @@ def main() -> None:
         prepare_resources(config, pg_session, logger)
         for phase in list(Phase):
             config.dir_output.mkdir(parents=True, exist_ok=True)
-            dest_alignments = config.dir_output / Path('alignment-{}.json'.format(phase.value))
+            dest_alignments = config.dir_output / Path(f'alignment-{phase.value}.json')
             alignments = load_alignments_from_db(pg_session, phase, logger)
             with dest_alignments.open(mode='w') as f:
                 writer = jsonlines.Writer(f)
@@ -124,7 +125,7 @@ def main() -> None:
     best_epoch = 0
     early_stop_counter = 0
     for epoch in range(config.n_epochs):
-        logger.info('start epoch {}'.format(epoch))
+        logger.info(f'start epoch {epoch}')
         train_result = run(train,
                            vocab,
                            model,

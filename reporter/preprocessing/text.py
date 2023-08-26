@@ -62,13 +62,11 @@ def kansuuzi2number(tokens: List[str]) -> List[str]:
             break
 
         if tokens[i + 1] == '円':
-            ts[i - 1] = ts[i - 1] + '0000'
-            ts.pop(i)
-
+            ts[i - 1] = f'{ts[i - 1]}0000'
         else:
             ts[i - 1] = ts[i - 1] + ts[i + 1].zfill(4)
             ts.pop(i + 1)
-            ts.pop(i)
+        ts.pop(i)
 
     return ts
 
@@ -83,9 +81,9 @@ def replace_prices_with_tags(tokens: List[str]) -> List[str]:
     """
 
     ts = tokens[:]
-    for i, t in enumerate(ts[:len(ts) - 1]):
+    for i, t in enumerate(ts[:-1]):
         if t.isdigit() and ts[i + 1].startswith('円'):
-            ts[i] = '<yen val="{}"/>'.format(t)
+            ts[i] = f'<yen val="{t}"/>'
             if ts[i + 1] in YEN_EXPRS:
                 ts[i + 1] = ts[i + 1].replace('円', '')
     return [t for t in ts if t != '']
@@ -125,7 +123,7 @@ def find_economic_exprs(headline: str) -> List[str]:
                '先物']
     results = []
     for index in indices:
-        expr = '{}(高|安)'.format(index)
+        expr = f'{index}(高|安)'
         match = re.search(expr, headline)
         if match is not None:
             results.append(' '.join([index, match[1]]))
@@ -153,6 +151,4 @@ def is_interesting(headline: str) -> bool:
 
     is_used = '日経平均' in headline or '東証' in headline
     is_used = is_used and '東証株価指数' not in headline
-    is_used = is_used and 'ジャスダック' not in headline
-
-    return is_used
+    return is_used and 'ジャスダック' not in headline

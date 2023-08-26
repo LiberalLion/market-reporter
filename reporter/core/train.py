@@ -64,7 +64,7 @@ def run(X: Iterator,
         times = batch.time
         tokens = batch.token
         raw_short_field = stringify_ric_seqtype(Code.N225.value, SeqType.RawShort)
-        latest_vals = [x for x in getattr(batch, raw_short_field).data[:, 0]]
+        latest_vals = list(getattr(batch, raw_short_field).data[:, 0])
         raw_long_field = stringify_ric_seqtype(Code.N225.value, SeqType.RawLong)
         latest_closing_vals = get_latest_closing_vals(batch, raw_long_field, times)
         max_n_tokens, _ = tokens.size()
@@ -106,17 +106,20 @@ def run(X: Iterator,
                 pred_sent_num = replace_tags_with_vals(pred_sent, latest_closing_val, latest_val)
                 all_pred_sents_with_number.append(pred_sent_num)
 
-                description = \
-                    '\n'.join(['=== {} ==='.format(phase.value.upper()),
-                               'Article ID: {}'.format(article_id),
-                               'Gold (tag): {}'.format(', '.join(gold_sent)),
-                               'Gold (num): {}'.format(', '.join(gold_sent_num)),
-                               'Pred (tag): {}'.format(', '.join(pred_sent)),
-                               'Pred (num): {}'.format(', '.join(pred_sent_num)),
-                               'BLEU: {:.5f}'.format(bleu),
-                               'Loss: {:.5f}'.format(loss.item() / max_n_tokens),
-                               'Latest: {:.2f}'.format(latest_val),
-                               'Closing: {:.2f}'.format(latest_closing_val)])
+                description = '\n'.join(
+                    [
+                        f'=== {phase.value.upper()} ===',
+                        f'Article ID: {article_id}',
+                        f"Gold (tag): {', '.join(gold_sent)}",
+                        f"Gold (num): {', '.join(gold_sent_num)}",
+                        f"Pred (tag): {', '.join(pred_sent)}",
+                        f"Pred (num): {', '.join(pred_sent_num)}",
+                        'BLEU: {:.5f}'.format(bleu),
+                        'Loss: {:.5f}'.format(loss.item() / max_n_tokens),
+                        'Latest: {:.2f}'.format(latest_val),
+                        'Closing: {:.2f}'.format(latest_closing_val),
+                    ]
+                )
                 logger.info(description)  # TODO: info → debug in release
 
         accum_loss += loss.item() / max_n_tokens
